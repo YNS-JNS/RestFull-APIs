@@ -10,6 +10,12 @@
 
 const express = require("express");
 const productCtrl = require("../controllers/product.controllers");
+const {
+    isIdValidator,
+    isIdCatValidator,
+    productValidator,
+    updateValidator
+} = require("../middlewares/validations/productValidator");
 
 const router = express.Router(); // Router func
 
@@ -31,8 +37,11 @@ const router = express.Router(); // Router func
  *   price: 19.99
  * }
 */
-
-router.post('/', productCtrl.createProduct);
+/**
+ * @desc POST | Create Product
+ * @params No param
+*/
+router.post('/', productValidator, productCtrl.createProduct);
 
 // ______________________________________________________________________
 
@@ -54,13 +63,27 @@ router.post('/', productCtrl.createProduct);
  *   }
  * ]
 */
-
-router.get('/', productCtrl.getProductList);
+/**
+ * @desc GET | GET ALL Products
+ * @params No param
+*/
+router.get('/', isIdCatValidator, productCtrl.getProductList);
 
 // ______________________________________________________________________
 
-router.put('/:id', productCtrl.updateProduct);
+/**
+ * @desc PUT | Update a Product
+ * @params {id}
+*/
+router.put('/:id', isIdValidator, updateValidator, productCtrl.updateProduct);
 
+// ______________________________________________________________________
+
+/**
+ * @desc DELETE | Delete a Product
+ * @params {id}
+*/
+router.delete('/:id', isIdValidator, updateValidator, productCtrl.updateProduct);
 
 // ______________________________________________________________________
 

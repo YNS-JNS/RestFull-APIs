@@ -10,15 +10,15 @@ const productSchema = mongoose.Schema(
             type: Number,
             required: [true, "Price must be a number and required !"]
         },
-        /* 
-            One-To-Many: un produit peut appartenir à une seule catégorie, 
-            mais une catégorie peut avoir plusieurs produits.           
-        */
         category: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'CategoryModel',
             required: [true, "Product must be belong to category"]
         }
+        /* 
+            One-To-Many: un produit peut appartenir à une seule catégorie, 
+            mais une catégorie peut avoir plusieurs produits.           
+        */
     }
 );
 

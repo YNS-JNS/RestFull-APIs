@@ -10,29 +10,8 @@ const CategoryModel = require("../models/category.model");
 
 exports.createProduct = (req, res) => {
 
-    const { name, price, category } = req.body;
-
-    if (!name) {
-        return res.status(400).json({
-            status_code: 400,
-            message: "Name is required !",
-        })
-    }
-    if (!price || price === 0) {
-        return res.status(400).json({
-            status_code: 400,
-            message: "Price is required !",
-        })
-    }
-    if (!category) {
-        return res.status(400).json({
-            status_code: 400,
-            message: "Category is required !",
-        })
-    }
-
     // Check if ID exists
-    CategoryModel.findById(category)
+    CategoryModel.findById(req.body.category)
         .then(
             (categoryObject) => {
                 // If Category is not exists
@@ -42,9 +21,7 @@ exports.createProduct = (req, res) => {
 
                 // Then, if exists create the Product
                 const newProduct = new ProductModel({
-                    name,
-                    price,
-                    category
+                    ...req.body
                 });
 
                 newProduct.save()
@@ -68,7 +45,7 @@ exports.createProduct = (req, res) => {
         .catch((err) => {
             res.status(500).json({
                 status_code: 500,
-                message: `Some error occurred while searching for the category, Maybe the ID = ${category} is not valid !`,
+                message: `Some error occurred while searching for the category, Maybe the ID = ${req.body.category} is not valid !`,
                 error: err.message
             })
         });
@@ -116,7 +93,39 @@ exports.createProduct =  async (req, res) => {
 
 exports.getProductList = (req, res) => {
 
-    ProductModel.find().populate("category", "-_id -__v")
+    // * Query:
+    // Example of Endpoint : 
+    // http://localhost:8080/api/products?name=example&minPrice=10&maxPrice=50category=example
+    const { name, minPrice, maxPrice, category } = req.query;
+
+    // Validate input parameters
+    if ( minPrice && maxPrice && isNaN(parseFloat(minPrice)) && isNaN(parseFloat(maxPrice)) ) {
+        return res.status(400).json({
+            message: "Invalid price range !"
+        })
+    }
+
+    const condition = {};
+
+    // * Nb: $options: "i" makes the search case-insensitive.
+
+    // * Filter by name
+    if (name) {
+        condition.name = { $regex: new RegExp(name), $options: "i" };
+    }
+
+    // * Filter by price range
+    if (minPrice && maxPrice) {
+        condition.price = { $gte: parseFloat(minPrice), $lte: parseFloat(maxPrice) };
+    }
+
+    // * Filter by category
+    if (category) {
+        condition.category = category;
+    }
+
+    // * Use condition object to query products
+    ProductModel.find(condition).populate("category", "-_id -__v")
         .then(products => {
             // Checking
             if (!products || products.length === 0) {
@@ -142,7 +151,7 @@ exports.getProductList = (req, res) => {
                 error: err.message,
             })
         });
-}
+};
 
 /* ____________________________________________________________________ */
 /*                            UPDATE section                            */
@@ -220,8 +229,3 @@ exports.deleteOneProduct = (req, res) => {
 /* ____________________________________________________________________ */
 /* Find products by Category using Query                                */
 /* ____________________________________________________________________ */
-
-exports.findProductsByCategory = (req, res) => {
-
-
-};
